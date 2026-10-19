@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <!--
+    De compilatievolgorde is de volgorde van de onion: van binnen naar buiten.
+    F# evalueert een project top-down, dus een bestand kan alleen verwijzen naar
+    bestanden die erboven staan. De richting van de afhankelijkheden wordt
+    daarmee door de compiler afgedwongen: de modellaag kán de datalaag niet
+    aanroepen, en de servicelaag kán de datalaag niet aanroepen.
+  -->
+  <ItemGroup>
+    <!-- Modellaag: domeinentiteiten en bedrijfsregels. Hangt van niets af. -->
+    <Compile Include="Model/Ids.fs" />
+    <Compile Include="Model/Users.fs" />
+    <Compile Include="Model/Files.fs" />
+    <Compile Include="Model/Rules.fs" />
+
+    <!-- Applicatielaag: use cases, en de interfaces naar de buitenwereld. -->
+    <Compile Include="Application/Ports.fs" />
+    <Compile Include="Application/Users.fs" />
+    <Compile Include="Application/Files.fs" />
+
+    <!-- Datalaag: implementeert de interfaces van de applicatielaag. -->
+    <Compile Include="Data/Database.fs" />
+    <Compile Include="Data/Mapping.fs" />
+    <Compile Include="Data/Users.fs" />
+    <Compile Include="Data/Files.fs" />
+
+    <!-- Servicelaag: ontsluit de use cases via HTTP. -->
+    <Compile Include="Service/Serialization.fs" />
+    <Compile Include="Service/Users.fs" />
+    <Compile Include="Service/Files.fs" />
+    <Compile Include="Service/Routes.fs" />
+
+    <!-- Compositiewortel. -->
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Giraffe" Version="7.0.2" />
+    <PackageReference Include="Thoth.Json.Net" Version="12.0.0" />
+  </ItemGroup>
+
+</Project>

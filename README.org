@@ -1,0 +1,67 @@
+#+title: Readme
+
+* Architectuur
+
+Het project volgt de onion-architectuur. De compilatievolgorde in
+=DrizzleCarton.fsproj= is de volgorde van de lagen, van binnen naar buiten. F#
+evalueert een project top-down, dus de compiler dwingt af dat een laag alleen
+naar binnen kan verwijzen.
+
+| Laag        | Map            | Verantwoordelijkheid                                      |
+|-------------+----------------+-----------------------------------------------------------|
+| Model       | =Model/=       | Domeintypen met hun invarianten, en de bedrijfsregels     |
+| Applicatie  | =Application/= | De use cases, en de interfaces naar de buitenwereld       |
+| Data        | =Data/=        | Implementeert die interfaces boven op de database         |
+| Service     | =Service/=     | Ontsluit de use cases via HTTP                            |
+| Compositie  | =Program.fs=   | Koppelt implementaties aan interfaces                     |
+
+De interfaces =IUserRepository= en =IEntryRepository= staan in
+=Application/Ports.fs= en zijn eigendom van de applicatielaag. De datalaag
+implementeert ze en hangt dus naar binnen af; de applicatielaag kent die
+implementatie niet. Daardoor is de opslag vervangbaar en zijn de use cases te
+testen met een stub.
+
+Binnen elke laag zijn er twee verticale componenten, =Users= en =Files=, die
+allebei door alle lagen heen snijden.
+
+* Draaien
+
+: dotnet run
+
+De service luistert op http://localhost:5000.
+
+* API :verb:
+template http://localhost:5000
+Accept: application/json
+
+** Haal alle gebruikers op
+get /user
+
+** Maak een gebruiker aan
+post /user
+Content-Type: application/json
+
+{ "Name": "nieuwegebruiker", "Quota": 2097152 }
+
+** Haal één gebruiker op
+get /user/1
+
+** Hernoem een gebruiker
+put /user/1/username
+
+"jannepan"
+
+** Bekijk alle bestanden en mappen van een gebruiker
+get /user/3/file
+
+** Use case 1: maak een map aan
+post /user/1/folder
+Content-Type: application/json
+
+{ "ParentId": 1, "Name": "vakantie" }
+
+** Use case 2: hoeveel bytes heeft een gebruiker opgeslagen
+get /user/1/quota
+
+** Use case 3: het grootste bestand en zijn pad
+get /user/3/largest
